@@ -1,0 +1,135 @@
+
+// TEST: Personas 
+
+import Carpas.*
+import Jarras.*
+import Marcas.*
+import Personas.*
+
+		
+describe "test" {
+	
+	const hofbrau = new Roja (lupulo = 7 , paisOrigen = "Alemania", graduacionMundial= 5)
+	const guiness = new Negra (lupulo = 9 , paisOrigen = "Belgica", graduacionMundial= 7)
+	const corona = new Rubia (lupulo = 3 , paisOrigen = "Mexico", graduacion= 4.9)
+	const patagonia = new Rubia (lupulo = 6 , paisOrigen = "Mexico" , graduacion=4)
+	const andes = new Roja (lupulo=9, paisOrigen="Belgica", graduacionMundial= 9)
+
+	const j1 = new Jarra(litros=0.7,marca=hofbrau)
+	const j2 = new Jarra(litros=2,marca=corona)
+	const j3 = new Jarra(litros=1.5,marca=patagonia)
+	const j4 = new Jarra(litros=1,marca=guiness)
+	
+	const sobrio = new Belga(peso=83, musicaTradicional=true, aguante=20)
+	const ebrio = new Aleman(peso=91, musicaTradicional=false, aguante=5)
+	
+	const lukaku = new Belga(peso=83, musicaTradicional=true, aguante=10)
+	const rosicky = new Checo(peso=95, musicaTradicional=true, aguante=15)
+	const muller = new Aleman(peso=90, musicaTradicional=true, aguante=5)
+	
+	//carpas
+	const carpa1 = new Carpas(limiteDeGente= 3, tieneMusica=true, marcaDeCerveza = andes)
+	const carpa2 = new Carpas(limiteDeGente= 2, tieneMusica=false, marcaDeCerveza = corona)
+	
+	method initialize(){
+		sobrio.comprarJarra(j2)
+		sobrio.comprarJarra(j3)
+		
+		ebrio.comprarJarra(j3)
+		ebrio.comprarJarra(j4)
+		ebrio.comprarJarra(j1)
+		ebrio.comprarJarra(j2)
+	
+		lukaku.entrar(carpa1)
+		carpa1.leSirve(lukaku, 1)
+		
+		rosicky.entrar(carpa1)
+		carpa1.leSirve( rosicky, 0.5 )
+	}
+	
+	test "Nivel de graduacion de las Marcas"{
+		assert.equals(4.9, corona.graduacion() )
+		assert.equals(11.25, andes.graduacion() )
+		assert.equals(7, guiness.graduacion() )
+	}
+	
+	
+	test "Contenido de alcohol de jarras" {
+		assert.equals(0.04375, j1.cantidadDeAlcohol())
+		assert.equals(0.06, j3.cantidadDeAlcohol())
+	}
+	
+	
+	test "Test 2: total de alcohol que ingirio una persona" {
+	
+		assert.equals(0.158,sobrio.totalAlcohol())
+		assert.equals(0.27175,ebrio.totalAlcohol())
+	}
+	
+	
+	test "Si una persona esta ebria o no" {
+		assert.notThat( sobrio.estaEbrio())
+		assert.that(ebrio.estaEbrio())
+	}
+	
+	test "A una persona checa solo le gusta la cerveza con mas de 8% de gaduacion"{
+		assert.that(rosicky.leGusta(andes))
+		assert.notThat(rosicky.leGusta(corona))	
+	}
+	
+	test "Saber si una persona quiere entrar a una carpa"{
+		assert.that(rosicky.quiereEntrar( carpa1 ))
+		assert.notThat(rosicky.quiereEntrar( carpa2 ))
+	}
+	
+	test "Los alemanes requieren (ademas) que haya una cantidad par de personas"{
+	
+		assert.that(muller.quiereEntrar(carpa1))
+		
+		sobrio.entrar(carpa1)
+		
+		assert.notThat(muller.quiereEntrar(carpa1))
+	
+	}
+	
+	test "La carpa no admite mas personas si esta llena o la persona esta ebria"{
+		assert.notThat( carpa1.dejaIngresar(ebrio) )
+		assert.that( carpa1.dejaIngresar(sobrio))
+	}
+	
+
+	test "Una persona puede entrar a una carpa solo si le gusta y quiere entrar en ella"{
+		
+		assert.notThat(ebrio.puedeEntrar(carpa1))
+		assert.that(lukaku.quiereEntrar(carpa1))
+	}
+	
+	test "Si la persona puede y quiere, entra a una carpa"{
+
+		//Como la persona quiere y puede entrar a la carpa, entra en ella y la carpa
+		//pasa a tener un integrante	
+		assert.equals( 2, carpa1.genteDentro().size())
+	}	
+		
+	test "La carpa le sirve a una persona solo si esta dentro de ella"{
+		
+		assert.equals(0.1125, lukaku.totalAlcohol())
+	}
+	
+	test "Es ebrio empedernido"{
+		
+		assert.notThat( rosicky.esEbrioEmpedernido() )
+		assert.that( lukaku.esEbrioEmpedernido() )
+		assert.equals( 1, carpa1.ebriosEmpedernidos() )	
+	}
+	
+	test "Es patriota si solo compra marcas de su pais"{
+		assert.that(lukaku.esPatriota())
+		
+		//rosicky.entrar(carpa1)
+		muller.entrar(carpa1)
+		carpa1.leSirve(muller, 1)
+		assert.notThat( muller.esPatriota() )
+		
+	}	
+}
